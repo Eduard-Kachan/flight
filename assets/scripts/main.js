@@ -14,25 +14,20 @@ function init() {
     windowWidth = window.innerWidth;
     windowHeight = window.innerHeight;
 
-    camera = new THREE.PerspectiveCamera( 70, windowWidth / windowHeight, 0.5, 1000 );
-    camera.position.z = 4;
-    camera.position.y = 4;
+    camera = new THREE.PerspectiveCamera( 70, windowWidth / windowHeight, 1, 1000 );
 
     scene = new THREE.Scene();
-
-    geometry = new THREE.BoxGeometry( 1, 1, 1 );
+    var size = 5;
+    geometry = new THREE.BoxGeometry( size, size, size );
     material = new THREE.MeshBasicMaterial( { color: "red" } );
     createDebri(50);
 
-    var planetGeo = new THREE.SphereGeometry(200, 200, 200);
+    var planetGeo = new THREE.SphereGeometry(400, 400, 400);
     var planetmaterial = new THREE.MeshBasicMaterial({color:"green"});
     var planet = new THREE.Mesh(planetGeo, planetmaterial);
-    planet.position.z = -250;
-    planet.position.x = -50;
+    planet.position.z = -600;
+    planet.position.x = -250;
     scene.add(planet);
-
-    var grid = new THREE.GridHelper(100, 10);
-    scene.add(grid);
 
     window.addEventListener( 'resize', onWindowResize, false );
     window.addEventListener( 'mousemove', onMouseMove, false );
@@ -49,9 +44,9 @@ function createDebri(amount) {
 }
 
 function randomPosition(debri) {
-    debri.position.x = Math.random() * 6;
-    debri.position.y = Math.random() * 6;
-    debri.position.z = -20 - Math.floor(Math.random() * 20);
+    debri.position.x = Math.random() * 60;
+    debri.position.y = Math.random() * 60;
+    debri.position.z = -200 - Math.floor(Math.random() * 200);
 
     if(Math.floor(Math.random() * 2) === 0){
         debri.position.x *= -1;
@@ -82,11 +77,11 @@ function onMouseMove(e) {
     }
 
     //move camera
-    camera.position.x = horizontal * 5;
-    camera.position.y = vertical * 5;
+    camera.position.x = horizontal * 40;
+    camera.position.y = -vertical * 40;
 
     //rotate camera
-    camera.rotation.y = horizontal * 10 * Math.PI / 180;
+    camera.rotation.y = -horizontal * 10 * Math.PI / 180;
     camera.rotation.x = vertical * 10 * Math.PI / 180;
 }
 
@@ -105,7 +100,7 @@ function animate() {
     requestAnimationFrame( animate );
 
     for(var i = 0; i < debri.length; i++){
-        debri[i].position.z += 0.1;
+        debri[i].position.z += 2;
         if(debri[i].position.z > 2){
             randomPosition(debri[i]);
         }
