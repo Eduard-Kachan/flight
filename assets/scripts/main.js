@@ -14,13 +14,13 @@ function init() {
     windowWidth = window.innerWidth;
     windowHeight = window.innerHeight;
 
-    camera = new THREE.PerspectiveCamera( 70, windowWidth / windowHeight, 1, 1000 );
+    camera = new THREE.PerspectiveCamera( 40, windowWidth / windowHeight, 1, 1000 );
 
     scene = new THREE.Scene();
     var size = 9;
     geometry = new THREE.BoxGeometry( size, size, size );
     material = new THREE.MeshBasicMaterial( { color: "red" } );
-    createDebri(50);
+    createDebri(70);
 
     //var planetGeo = new THREE.SphereGeometry(400, 400, 400);
     //var planetmaterial = new THREE.MeshBasicMaterial({color:"green"});
@@ -45,16 +45,16 @@ function createDebri(amount) {
 }
 
 function randomPosition(debri) {
-    debri.position.x = Math.random() * 60;
-    debri.position.y = Math.random() * 60;
+    debri.position.x = Math.random() * 250;
+    debri.position.y = Math.random() * 200;
     debri.position.z = -400 - Math.floor(Math.random() * 400);
 
     if(Math.floor(Math.random() * 2) === 0){debri.position.x *= -1}
     if(Math.floor(Math.random() * 2) === 0){debri.position.y *= -1}
 
     debri.userData.finalPosition = {x:0,y:0,z:2};
-    debri.userData.finalPosition.x = Math.random() * 60;
-    debri.userData.finalPosition.y = Math.random() * 60;
+    debri.userData.finalPosition.x = Math.random() * 80;
+    debri.userData.finalPosition.y = Math.random() * 80;
 
     if(Math.floor(Math.random() * 2) === 0){debri.userData.finalPosition.x *= -1}
     if(Math.floor(Math.random() * 2) === 0){debri.userData.finalPosition.y *= -1}
@@ -69,36 +69,12 @@ function randomPosition(debri) {
     debri.userData.time = debri.userData.distanceZ / debri.userData.speed.z;
 
     //speed x
-    debri.userData.speed.x = getDistanceOnAxis(debri.position.x, debri.userData.finalPosition.x) / debri.userData.time;
+    debri.userData.speed.x = (debri.userData.finalPosition.x - debri.position.x) / debri.userData.time;
 
     //speed y
-    debri.userData.speed.y = getDistanceOnAxis(debri.position.y, debri.userData.finalPosition.y) / debri.userData.time;
+    debri.userData.speed.y = (debri.userData.finalPosition.y - debri.position.y) / debri.userData.time;
 
-    console.log(debri.userData.speed.x, debri.userData.speed.y)
-}
-
-function getDistanceOnAxis(x1, x2) {
-    if(x1 >= 0 ){
-        if(x2 >= 0){
-            if(x1 > x2){
-                return x1 - x2; // x1 = 5, x2 = 2, x1 - x2 = 3
-            }else{
-                return x2 - x1; // x1 = 2, x2 = 5, x2 - x1 = 3
-            }
-        }else{
-            return x1 - x2; // x1 = 5, x2 = -2, x1 - x2 = 7
-        }
-    }else{
-        if(x2 >= 0){
-            return x2 - x1; // x1 = -5, x2 = 2, x2 - x1 = 7
-        }else{
-            if(x1 < x2){
-                return x2 - x1; // x1 = -5, x2 = -2, x2 - x1 = 3
-            }else{
-                return x1 - x2; // x1 = -2, x2 = -5, x1 - x2 = 3
-            }
-        }
-    }
+    //console.log(debri.userData.speed.x, debri.userData.speed.y)
 }
 
 function onMouseMove(e) {
@@ -144,7 +120,10 @@ function animate() {
     requestAnimationFrame( animate );
 
     for(var i = 0; i < debri.length; i++){
+        debri[i].position.x += debri[i].userData.speed.x;
+        debri[i].position.y += debri[i].userData.speed.y;
         debri[i].position.z += debri[i].userData.speed.z;
+
         if(debri[i].position.z > 2){
             randomPosition(debri[i]);
         }
