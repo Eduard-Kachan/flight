@@ -1,5 +1,5 @@
-var camera, scene, renderer, windowWidth, windowHeight, geometry, material;
-var debri = [];
+var camera, scene, renderer, windowWidth, windowHeight, geometry, material, loader;
+var debris = [];
 
 init();
 animate();
@@ -17,10 +17,32 @@ function init() {
     camera = new THREE.PerspectiveCamera( 40, windowWidth / windowHeight, 1, 1000 );
 
     scene = new THREE.Scene();
+
+    loader = new THREE.OBJLoader();
+    loader.load( 'assets/objects/rock01.obj', function ( object ) {
+
+        //object.traverse( function ( child ) {
+        //    if ( child instanceof THREE.Mesh ) {
+        //
+        //        child.material = new THREE.MeshLambertMaterial({ color: 'lightgray' });
+        //        child.castShadow = true;
+        //    }
+        //
+        //} );
+
+        console.log(object);
+
+        ////object.rotation.y = -45 * Math.PI / 180;
+        //object.castShadow = false;
+        //object.receiveShadow = true;
+        //house = object;
+        //scene.add( house );
+    }, onProgress, onError );
+
     var size = 9;
     geometry = new THREE.BoxGeometry( size, size, size );
     material = new THREE.MeshBasicMaterial( { color: "red" } );
-    createDebri(70);
+    createdebris(70);
 
     var planetGeo = new THREE.SphereGeometry(400, 400, 400);
     var planetmaterial = new THREE.MeshBasicMaterial({color:"green"});
@@ -34,47 +56,71 @@ function init() {
 
 }
 
-function createDebri(amount) {
+var onProgress = function ( xhr ) {
+    if ( xhr.lengthComputable ) {
+        var percentComplete = xhr.loaded / xhr.total * 100;
+        console.log( Math.round(percentComplete, 2) + '% downloaded' );
+        console.log('done');
+    }
+};
+
+var onError = function ( xhr ) {
+};
+
+function createdebris(amount) {
     for(var i = 0; i < amount; i++){
-        debri[i] = new THREE.Mesh( geometry, material );
-        randomPosition(debri[i]);
-        scene.add(debri[i]);
-        //console.log(debri[i]);
+        debris[i] = new THREE.Mesh( geometry, material );
+        randomPosition(debris[i]);
+        scene.add(debris[i]);
+        //console.log(debris[i]);
     }
 
 }
 
-function randomPosition(debri) {
-    debri.position.x = Math.random() * 250;
-    debri.position.y = Math.random() * 200;
-    debri.position.z = -400 - Math.floor(Math.random() * 400);
+function randomPosition(debris) {
+    debris.position.x = Math.random() * 250;
+    debris.position.y = Math.random() * 200;
+    debris.position.z = -400 - Math.floor(Math.random() * 400);
 
-    if(Math.floor(Math.random() * 2) === 0){debri.position.x *= -1}
-    if(Math.floor(Math.random() * 2) === 0){debri.position.y *= -1}
+    if(Math.floor(Math.random() * 2) === 0){debris.position.x *= -1}
+    if(Math.floor(Math.random() * 2) === 0){debris.position.y *= -1}
 
-    debri.userData.finalPosition = {x:0,y:0,z:2};
-    debri.userData.finalPosition.x = Math.random() * 80;
-    debri.userData.finalPosition.y = Math.random() * 80;
+    debris.userData.finalPosition = {x:0,y:0,z:2};
+    debris.userData.finalPosition.x = Math.random() * 80;
+    debris.userData.finalPosition.y = Math.random() * 80;
 
-    if(Math.floor(Math.random() * 2) === 0){debri.userData.finalPosition.x *= -1}
-    if(Math.floor(Math.random() * 2) === 0){debri.userData.finalPosition.y *= -1}
+    if(Math.floor(Math.random() * 2) === 0){debris.userData.finalPosition.x *= -1}
+    if(Math.floor(Math.random() * 2) === 0){debris.userData.finalPosition.y *= -1}
 
     //speed
-    debri.userData.speed = {x:0, y:0, z:Math.random() * 3 + 1};
+    debris.userData.speed = {x:0, y:0, z:Math.random() * 3 + 1};
 
     //distance
-    debri.userData.distanceZ = Math.abs(debri.userData.finalPosition.z) + Math.abs(debri.position.z);
+    debris.userData.distanceZ = Math.abs(debris.userData.finalPosition.z) + Math.abs(debris.position.z);
 
     //time
-    debri.userData.time = debri.userData.distanceZ / debri.userData.speed.z;
+    debris.userData.time = debris.userData.distanceZ / debris.userData.speed.z;
 
     //speed x
-    debri.userData.speed.x = (debri.userData.finalPosition.x - debri.position.x) / debri.userData.time;
+    debris.userData.speed.x = (debris.userData.finalPosition.x - debris.position.x) / debris.userData.time;
 
     //speed y
-    debri.userData.speed.y = (debri.userData.finalPosition.y - debri.position.y) / debri.userData.time;
+    debris.userData.speed.y = (debris.userData.finalPosition.y - debris.position.y) / debris.userData.time;
 
-    //console.log(debri.userData.speed.x, debri.userData.speed.y)
+    //Random rotation
+    debris.rotation.x = Math.random() * 360 * Math.PI / 180;
+    debris.rotation.y = Math.random() * 360 * Math.PI / 180;
+    debris.rotation.z = Math.random() * 360 * Math.PI / 180;
+
+    //Random turn
+    debris.userData.randomRotationSpeed = {x:0,y:0,z:0};
+    debris.userData.randomRotationSpeed.x = Math.random() * 0.01;
+    debris.userData.randomRotationSpeed.y = Math.random() * 0.01;
+    debris.userData.randomRotationSpeed.z = Math.random() * 0.01;
+
+    if(Math.floor(Math.random() * 2) === 0){debris.userData.randomRotationSpeed.x *= -1}
+    if(Math.floor(Math.random() * 2) === 0){debris.userData.randomRotationSpeed.y *= -1}
+    if(Math.floor(Math.random() * 2) === 0){debris.userData.randomRotationSpeed.z *= -1}
 }
 
 function onMouseMove(e) {
@@ -119,13 +165,17 @@ function animate() {
 
     requestAnimationFrame( animate );
 
-    for(var i = 0; i < debri.length; i++){
-        debri[i].position.x += debri[i].userData.speed.x;
-        debri[i].position.y += debri[i].userData.speed.y;
-        debri[i].position.z += debri[i].userData.speed.z;
+    for(var i = 0; i < debris.length; i++){
+        debris[i].position.x += debris[i].userData.speed.x;
+        debris[i].position.y += debris[i].userData.speed.y;
+        debris[i].position.z += debris[i].userData.speed.z;
 
-        if(debri[i].position.z > 2){
-            randomPosition(debri[i]);
+        debris[i].rotation.x += debris[i].userData.randomRotationSpeed.x;
+        debris[i].rotation.y += debris[i].userData.randomRotationSpeed.y;
+        debris[i].rotation.z += debris[i].userData.randomRotationSpeed.z;
+
+        if(debris[i].position.z > 2){
+            randomPosition(debris[i]);
         }
     }
 
