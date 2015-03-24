@@ -22,12 +22,12 @@ function init() {
     material = new THREE.MeshBasicMaterial( { color: "red" } );
     createDebri(70);
 
-    //var planetGeo = new THREE.SphereGeometry(400, 400, 400);
-    //var planetmaterial = new THREE.MeshBasicMaterial({color:"green"});
-    //var planet = new THREE.Mesh(planetGeo, planetmaterial);
-    //planet.position.z = -600;
-    //planet.position.x = -250;
-    //scene.add(planet);
+    var planetGeo = new THREE.SphereGeometry(400, 400, 400);
+    var planetmaterial = new THREE.MeshBasicMaterial({color:"green"});
+    var planet = new THREE.Mesh(planetGeo, planetmaterial);
+    planet.position.z = -1000;
+    planet.position.x = -250;
+    scene.add(planet);
 
     window.addEventListener( 'resize', onWindowResize, false );
     window.addEventListener( 'mousemove', onMouseMove, false );
