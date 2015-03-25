@@ -34,11 +34,17 @@ function init() {
 
     var size = 9;
     geometry = new THREE.BoxGeometry( size, size, size );
-    material = new THREE.MeshBasicMaterial( { color: "red" } );
+    material = new THREE.MeshLambertMaterial( { color: "red" } );
     createdebris(70);
 
-    var planetGeo = new THREE.SphereGeometry(400, 400, 400);
-    var planetmaterial = new THREE.MeshBasicMaterial({color:"green"});
+    var hemiLight = new THREE.HemisphereLight( 0xffffff, 0xffffff, 0.6 );
+    hemiLight.color.setHSL( 0.6, 1, 0.6 );
+    hemiLight.groundColor.setHSL( 0.095, 1, 0.75 );
+    hemiLight.position.set( 0, -500, 500git  );
+    scene.add( hemiLight );
+
+    var planetGeo = new THREE.SphereGeometry(400, 15, 15);
+    var planetmaterial = new THREE.MeshLambertMaterial({color:"green"});
     var planet = new THREE.Mesh(planetGeo, planetmaterial);
     planet.position.z = -1000;
     planet.position.x = -250;
