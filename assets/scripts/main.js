@@ -1,8 +1,22 @@
-var camera, scene, renderer, windowWidth, windowHeight, geometry, material, loader;
+var camera, scene, renderer, windowWidth, windowHeight, geometry, material;
 var debris = [];
+var rockGeometrys = [];
 
-init();
-animate();
+var dae;
+
+
+var loader = new THREE.ColladaLoader();
+loader.options.convertUpAxis = true;
+loader.load( 'assets/objects/rocks.dae', function ( collada ) {
+
+    for(var child in collada.dae.geometries){
+        rockGeometrys.push(collada.dae.geometries[child].mesh.geometry3js);
+    }
+
+    init();
+    animate();
+
+});
 
 function init() {
 
@@ -17,27 +31,6 @@ function init() {
     camera = new THREE.PerspectiveCamera( 40, windowWidth / windowHeight, 1, 1000 );
 
     scene = new THREE.Scene();
-
-    loader = new THREE.OBJLoader();
-    loader.load( 'assets/objects/rock01.obj', function ( object ) {
-
-        //object.traverse( function ( child ) {
-        //    if ( child instanceof THREE.Mesh ) {
-        //
-        //        child.material = new THREE.MeshLambertMaterial({ color: 'lightgray' });
-        //        child.castShadow = true;
-        //    }
-        //
-        //} );
-
-        console.log(object);
-
-        ////object.rotation.y = -45 * Math.PI / 180;
-        //object.castShadow = false;
-        //object.receiveShadow = true;
-        //house = object;
-        //scene.add( house );
-    }, onProgress, onError );
 
     var size = 9;
     geometry = new THREE.BoxGeometry( size, size, size );
@@ -56,25 +49,16 @@ function init() {
 
 }
 
-var onProgress = function ( xhr ) {
-    if ( xhr.lengthComputable ) {
-        var percentComplete = xhr.loaded / xhr.total * 100;
-        console.log( Math.round(percentComplete, 2) + '% downloaded' );
-        console.log('done');
-    }
-};
-
-var onError = function ( xhr ) {
-};
 
 function createdebris(amount) {
+    var random;
     for(var i = 0; i < amount; i++){
-        debris[i] = new THREE.Mesh( geometry, material );
+        random = Math.floor(Math.random() * rockGeometrys.length);
+        debris[i] = new THREE.Mesh( rockGeometrys[random], material );
+        debris[i].scale.x = debris[i].scale.y = debris[i].scale.z = 400;
         randomPosition(debris[i]);
         scene.add(debris[i]);
-        //console.log(debris[i]);
     }
-
 }
 
 function randomPosition(debris) {
