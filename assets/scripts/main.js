@@ -1,21 +1,53 @@
-var camera, scene, renderer, windowWidth, windowHeight, geometry, material, verticalMovmet, horisontalMovmet;
+var camera, scene, renderer, windowWidth, windowHeight, geometry, material, verticalMovement, horizontalMovement, t;
 var player = {
-    speed: 2,
-    left: false,
-    top: false,
-    right: false,
-    down: false,
-    verticalMovment: 0,
-    horisontalMovment: 0,
-    calculateDirection: function(){
-        if(this.right && !this.left)this.horisontalMovment = -1;
-        if(this.left && !this.right)this.horisontalMovment = 1;
-        if(this.left == this.right)this.horisontalMovment = 0;
-        if(this.up && !this.down)this.verticalMovment = -1;
-        if(this.down && !this.up)this.verticalMovment = 1;
-        if(this.down == this.up)this.verticalMovment = 0;
+    maxSpeed: 4,
+    movement: {
+        left: false,
+        top: false,
+        right: false,
+        down: false
+    },
+    speed: {
+        x:0,
+        y:0
+    },
+    finalSpeed: {
+        x:0,
+        y: 0
+    },
+    calculatePosition: function() {
+        if(this.movement.right && !this.movement.left)this.finalSpeed.x = this.maxSpeed * -1;
+        if(this.movement.left && !this.movement.right)this.finalSpeed.x = this.maxSpeed;
+        if(this.movement.left == this.movement.right)this.finalSpeed.x = 0;
+        if(this.movement.up && !this.movement.down)this.finalSpeed.y = this.maxSpeed * -1;
+        if(this.movement.down && !this.movement.up)this.finalSpeed.y = this.maxSpeed;
+        if(this.movement.down == this.movement.up)this.finalSpeed.y = 0;
+    },
+    t1:0,
+    t2:0,
+    update: function(){
+        var int = 0.1;
+        if(this.speed.x != this.finalSpeed.x){
+            if(this.speed.x > this.finalSpeed.x){
+                this.speed.x -= int;
+            }else{
+                this.speed.x += int;
+            }
+        }
+
+        if(this.speed.y != this.finalSpeed.y){
+            if(this.speed.y > this.finalSpeed.y){
+                this.speed.y -= int;
+            }else{
+                this.speed.y += int;
+            }
+        }
+    },
+    ease: function (time, multiplicator) {
+        return (1 - Math.cos(time * Math.PI))/2 * multiplicator;
     }
 };
+
 var debris = [];
 var rockGeometrys = [];
 
@@ -76,23 +108,23 @@ function init() {
 window.onkeydown = function(e) {
     var key = e.keyCode ? e.keyCode : e.which;
 
-    if(key == 37) player.left = true;
-    if(key == 38) player.up = true;
-    if(key == 39) player.right = true;
-    if(key == 40) player.down = true;
+    if(key == 37) player.movement.left = true;
+    if(key == 38) player.movement.up = true;
+    if(key == 39) player.movement.right = true;
+    if(key == 40) player.movement.down = true;
 
-    player.calculateDirection();
+    player.calculatePosition();
 };
 
 window.onkeyup = function(e) {
     var key = e.keyCode ? e.keyCode : e.which;
 
-    if(key == 37) player.left = false;
-    if(key == 38) player.up = false;
-    if(key == 39) player.right = false;
-    if(key == 40) player.down = false;
+    if(key == 37) player.movement.left = false;
+    if(key == 38) player.movement.up = false;
+    if(key == 39) player.movement.right = false;
+    if(key == 40) player.movement.down = false;
 
-    player.calculateDirection();
+    player.calculatePosition();
 };
 
 function createdebris(amount) {
@@ -192,19 +224,58 @@ function onWindowResize() {
     renderer.setSize( windowWidth , windowHeight );
 }
 
+
+var t1 = 0;
+var t2 = 1;
+
+
+
 function animate() {
 
+    player.update();
 
+    ///t1 += 0.1;
+    //console.log("-", t1);
+    //console.log(simple_easing(t1));
+    //
+    //if((Math.abs(player.speedX) >= player.speed) && player.horisontalMovment){
+    //    player.speedX = player.speed * player.horisontalMovment;
+    //}else if(player.horisontalMovment){
+    //    t1 += 0.01;
+    //    player.speedX = (Math.abs(player.speedX) +  0.1 * 2*t1) * player.horisontalMovment;
+    //    console.log(player.speedX);
+    //}else{
+    //    t1 = 1;
+    //    player.speedX = 0;
+    //
+    //    //if(player.speedX > 0){
+    //    //    player -= 1;
+    //    //}
+    //    //
+    //    //if(player.speedX < 0){
+    //    //    player += 1;
+    //    //}
+    //}
+    //if((Math.abs(player.speedY) >= player.speed) && player.verticalMovment){
+    //    player.speedY = player.speed * player.verticalMovment;
+    //}else if(player.verticalMovment){
+    //    t2 += 0.01;
+    //    player.speedY = (Math.abs(player.speedY) +  0.1 * 2*t2) * player.verticalMovment;
+    //    console.log(player.speedY);
+    //}else{
+    //    t2 = 1;
+    //    player.speedY = 0;
+    //}
 
     requestAnimationFrame( animate );
 
-    camera.rotation.y = player.horisontalMovment * 5 * Math.PI / 180;
-    camera.rotation.x = -player.verticalMovment * 5 * Math.PI / 180;
+    //camera.rotation.y = player.horisontalMovment * 5 * Math.PI / 180;
+    //camera.rotation.x = -player.verticalMovment * 5 * Math.PI / 180;
 
     for(var i = 0; i < debris.length; i++){
-        debris[i].position.x += debris[i].userData.speed.x + (player.horisontalMovment * player.speed);
-        debris[i].position.y += debris[i].userData.speed.y + (player.verticalMovment * player.speed);
-        debris[i].position.z += debris[i].userData.speed.z + 2;
+        debris[i].position.x += debris[i].userData.speed.x + player.speed.x;
+        debris[i].position.y += debris[i].userData.speed.y + player.speed.y;
+        debris[i].position.z += debris[i].userData.speed.z + player.maxSpeed;
 
         debris[i].rotation.x += debris[i].userData.randomRotationSpeed.x;
         debris[i].rotation.y += debris[i].userData.randomRotationSpeed.y;
