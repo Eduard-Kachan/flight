@@ -2,7 +2,7 @@ var camera, scene, renderer, windowWidth, windowHeight, planet, geometry, materi
 var asteroidColor = 0xBFD7D9;
 var fillLightColor = 0x000000;
 var keyLightColor = 0xE4A268;
-var asteroids = 150;
+
 var player = {
     spaceship: null,
     maxSpeed: 0.4,
@@ -153,7 +153,7 @@ function Debris(amount, area, scene){
         if(Math.floor(Math.random() * 2) === 0){debris.userData.randomRotationSpeed.z *= -1}
     };
 
-    updatePosition: function (debri, debriOutline) {
+    this.updatePosition= function (debri, debriOutline) {
 
         debri.position.x += debri.userData.speed.x/6; // + player.speed.x;
         debri.position.y += debri.userData.speed.y/6; // + player.speed.y;
@@ -174,7 +174,7 @@ function Debris(amount, area, scene){
         if(debri.position.z > -200){
             debriOutline.material.opacity = 1;
         }
-    },
+    };
 }
 
 var debris = {
@@ -293,7 +293,6 @@ var debris = {
 };
 
 
-
 // Load Collada objects
 // All objects must be in the same file
 var loader = new THREE.ColladaLoader();
@@ -317,6 +316,7 @@ loader.load( 'assets/objects/AsteroidDodge.dae', function ( collada ) {
 
 function init() {
 
+    // creating Renderer, Camera and Scene
     renderer = new THREE.WebGLRenderer();
     renderer.setPixelRatio( window.devicePixelRatio );
     renderer.setSize( window.innerWidth, window.innerHeight );
@@ -329,12 +329,10 @@ function init() {
 
     scene = new THREE.Scene();
 
-    var size = 9;
-    geometry = new THREE.BoxGeometry( size, size, size );
+    // Material for the asteroids
     material = new THREE.MeshLambertMaterial( { color: asteroidColor } );
-    materialOutline = new THREE.MeshBasicMaterial( { color: 0xff0000, side: THREE.BackSide, transparent: true, opacity : 0} );
 
-
+    // Creating asteroids
     debris.createDebris(debris.outerAsteroidsAmount, debris.outerAsteroids, debris.outerOutline, debris.outerAsteroidArea);
     debris.createDebris(debris.innerAsteroidsAmount, debris.innerAsteroids, debris.innerOutline, debris.innerAsteroidArea);
 
@@ -351,6 +349,8 @@ function init() {
     fillLight.position.set(-1, -1, 1);
     scene.add(fillLight);
 
+    // Creating the planet
+    // Adding a texture to the Sphere Geometry
     var diamitor = 1000;
     var planetGeo = new THREE.SphereGeometry(diamitor, 15, 15);
     var plannetTexture = THREE.ImageUtils.loadTexture('assets/images/trova.jpg');
@@ -362,9 +362,8 @@ function init() {
 
     scene.add(player.spaceship);
 
-
+    // Scaling the renderer to the screen dimentions
     window.addEventListener( 'resize', onWindowResize, false );
-    //window.addEventListener( 'mousemove', onMouseMove, false );
 
 }
 
@@ -390,10 +389,7 @@ window.onkeyup = function(e) {
     player.calculatePosition();
 };
 
-
-
-
-
+// Unused
 function onMouseMove(e) {
     var halfWidth = windowWidth / 2;
     var halfHeight = windowHeight / 2;
@@ -435,24 +431,15 @@ function onWindowResize() {
 }
 
 
-var t1 = 0;
-var t2 = 1;
-
-
-
+// Animate function that renders the scene
 function animate() {
-
-
-
-    requestAnimationFrame( animate );
-
+    renderer.render( scene, camera );
 
     planet.rotation.y += 0.00009;
 
     player.update();
     debris.update();
 
-    renderer.render( scene, camera );
-
+    requestAnimationFrame( animate );
 }
 
