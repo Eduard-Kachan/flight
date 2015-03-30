@@ -1,6 +1,11 @@
-var camera, scene, renderer, windowWidth, windowHeight, geometry, material, verticalMovement, horizontalMovement, t;
+var camera, scene, renderer, windowWidth, windowHeight, planet, geometry, material, verticalMovement, horizontalMovement, t;
+var asteroidColor = 0xBFD7D9;
+var fillLightColor = 0x000000;
+var keyLightColor = 0xE4A268;
+var asteroids = 120;
 var player = {
-    maxSpeed: 4,
+    spaceship: null,
+    maxSpeed: 0.4,
     movement: {
         left: false,
         top: false,
@@ -26,7 +31,7 @@ var player = {
     t1:0,
     t2:0,
     update: function(){
-        var int = 0.1;
+        var int = 0.009;
         if(this.speed.x != this.finalSpeed.x){
             if(this.speed.x > this.finalSpeed.x){
                 this.speed.x -= int;
@@ -42,6 +47,9 @@ var player = {
                 this.speed.y += int;
             }
         }
+
+        this.spaceship.position.x -= this.speed.x;
+        this.spaceship.position.y -= this.speed.y;
     },
     ease: function (time, multiplicator) {
         return (1 - Math.cos(time * Math.PI))/2 * multiplicator;
@@ -51,20 +59,26 @@ var player = {
 var debris = [];
 var rockGeometrys = [];
 
-var dae;
-
 
 var loader = new THREE.ColladaLoader();
 loader.options.convertUpAxis = true;
-loader.load( 'assets/objects/rocks.dae', function ( collada ) {
+loader.load( 'assets/objects/AsteroidDodge.dae', function ( collada ) {
 
-    for(var child in collada.dae.geometries){
-        rockGeometrys.push(collada.dae.geometries[child].mesh.geometry3js);
+    for(var i = 0; i < collada.scene.children.length; i++){
+        var geometry = collada.scene.children[i];
+
+        if(geometry.colladaId == 'Spaceship'){
+            player.spaceship = geometry;
+            player.spaceship.position.z = -25;
+            player.spaceship.rotation.y = 180 * Math.PI / 180;
+        }else if(geometry.colladaId.search('rock') > -1){
+            rockGeometrys.push(geometry.children[0].geometry);
+        }
     }
+
 
     init();
     animate();
-
 });
 
 function init() {
@@ -77,28 +91,39 @@ function init() {
     windowWidth = window.innerWidth;
     windowHeight = window.innerHeight;
 
-    camera = new THREE.PerspectiveCamera( 40, windowWidth / windowHeight, 1, 10000 );
+    camera = new THREE.PerspectiveCamera( 74, windowWidth / windowHeight, 1, 10000 );
 
     scene = new THREE.Scene();
 
     var size = 9;
     geometry = new THREE.BoxGeometry( size, size, size );
-    material = new THREE.MeshLambertMaterial( { color: "red" } );
-    createdebris(70);
+    material = new THREE.MeshLambertMaterial( { color: asteroidColor } );
+    createDebris(asteroids);
 
-    var hemiLight = new THREE.HemisphereLight( 0xffffff, 0xffffff, 0.9 );
-    hemiLight.color.setHSL( 0.6, 1, 0.6 );
-    hemiLight.groundColor.setHSL( 0.095, 1, 0.75 );
-    hemiLight.position.set( 0, -500, 500);
+    var hemiLight = new THREE.HemisphereLight( 0xC75145, 0xC75145, 0.1);
+    hemiLight.position.set( -3, -3, 0);
     scene.add( hemiLight );
 
-    var planetGeo = new THREE.SphereGeometry(800, 15, 15);
-    var planetmaterial = new THREE.MeshLambertMaterial({color:"green"});
-    var planet = new THREE.Mesh(planetGeo, planetmaterial);
-    planet.scale.z = 0.01;
-    planet.position.z = -1800;
-    planet.position.x = -250;
+    var keyLight = new THREE.DirectionalLight(keyLightColor);
+    keyLight.position.set(1, 1, 1);
+    scene.add(keyLight);
+
+    var fillLight = new THREE.DirectionalLight(fillLightColor);
+    fillLight.position.set(-1, -1, 1);
+    scene.add(fillLight);
+
+    var diamitor = 1000;
+    var planetGeo = new THREE.SphereGeometry(diamitor, 15, 15);
+    var plannetTexture = THREE.ImageUtils.loadTexture('assets/images/trova.jpg');
+    var planetmaterial = new THREE.MeshLambertMaterial({map:plannetTexture});
+    planet = new THREE.Mesh(planetGeo, planetmaterial);
+    //planet.scale.z = 0.01;
+    planet.position.z = -1600 - diamitor;
+    planet.position.x = -500;
     scene.add(planet);
+
+    scene.add(player.spaceship);
+
 
     window.addEventListener( 'resize', onWindowResize, false );
     window.addEventListener( 'mousemove', onMouseMove, false );
@@ -127,21 +152,21 @@ window.onkeyup = function(e) {
     player.calculatePosition();
 };
 
-function createdebris(amount) {
+function createDebris(amount) {
     var random;
     for(var i = 0; i < amount; i++){
         random = Math.floor(Math.random() * rockGeometrys.length);
         debris[i] = new THREE.Mesh( rockGeometrys[random], material );
-        debris[i].scale.x = debris[i].scale.y = debris[i].scale.z = 500;
+        debris[i].scale.x = debris[i].scale.y = debris[i].scale.z = 800;
         randomPosition(debris[i]);
         scene.add(debris[i]);
     }
 }
 
 function randomPosition(debris) {
-    debris.position.x = Math.random() * 400;
-    debris.position.y = Math.random() * 400;
-    debris.position.z = -600 - Math.floor(Math.random() * 600);
+    debris.position.x = Math.random() * 800;
+    debris.position.y = Math.random() * 800;
+    debris.position.z = -1600;//-600 - Math.floor(Math.random() * 600);
 
     if(Math.floor(Math.random() * 2) === 0){debris.position.x *= -1}
     if(Math.floor(Math.random() * 2) === 0){debris.position.y *= -1}
@@ -232,40 +257,9 @@ var t2 = 1;
 
 function animate() {
 
-    player.update();
+    planet.rotation.y += 0.00009;
 
-    ///t1 += 0.1;
-    //console.log("-", t1);
-    //console.log(simple_easing(t1));
-    //
-    //if((Math.abs(player.speedX) >= player.speed) && player.horisontalMovment){
-    //    player.speedX = player.speed * player.horisontalMovment;
-    //}else if(player.horisontalMovment){
-    //    t1 += 0.01;
-    //    player.speedX = (Math.abs(player.speedX) +  0.1 * 2*t1) * player.horisontalMovment;
-    //    console.log(player.speedX);
-    //}else{
-    //    t1 = 1;
-    //    player.speedX = 0;
-    //
-    //    //if(player.speedX > 0){
-    //    //    player -= 1;
-    //    //}
-    //    //
-    //    //if(player.speedX < 0){
-    //    //    player += 1;
-    //    //}
-    //}
-    //if((Math.abs(player.speedY) >= player.speed) && player.verticalMovment){
-    //    player.speedY = player.speed * player.verticalMovment;
-    //}else if(player.verticalMovment){
-    //    t2 += 0.01;
-    //    player.speedY = (Math.abs(player.speedY) +  0.1 * 2*t2) * player.verticalMovment;
-    //    console.log(player.speedY);
-    //}else{
-    //    t2 = 1;
-    //    player.speedY = 0;
-    //}
+    player.update();
 
     requestAnimationFrame( animate );
 
@@ -273,9 +267,10 @@ function animate() {
     //camera.rotation.x = -player.verticalMovment * 5 * Math.PI / 180;
 
     for(var i = 0; i < debris.length; i++){
-        debris[i].position.x += debris[i].userData.speed.x + player.speed.x;
-        debris[i].position.y += debris[i].userData.speed.y + player.speed.y;
-        debris[i].position.z += debris[i].userData.speed.z + player.maxSpeed;
+        debris[i].position.x += debris[i].userData.speed.x/6; // + player.speed.x;
+        debris[i].position.y += debris[i].userData.speed.y/6; // + player.speed.y;
+        debris[i].position.z += debris[i].userData.speed.z/2; // + player.maxSpeed/2;
+
 
         debris[i].rotation.x += debris[i].userData.randomRotationSpeed.x;
         debris[i].rotation.y += debris[i].userData.randomRotationSpeed.y;
